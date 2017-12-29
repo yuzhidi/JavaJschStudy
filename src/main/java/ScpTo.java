@@ -1,148 +1,141 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
+/**
+ * This program will demonstrate the file transfer from local to remote.
+ *   $ CLASSPATH=.:../build javac ScpTo.java
+ *   $ CLASSPATH=.:../build java ScpTo file1 user@remotehost:file2
+ * You will be asked passwd.
+ * If everything works fine, a local file 'file1' will copied to
+ * 'file2' on 'remotehost'.
+ *
+ */
 import com.jcraft.jsch.*;
 import java.awt.*;
 import javax.swing.*;
 import java.io.*;
 
-public class Exec{
+public class ScpTo{
     public static void main(String[] arg){
+        if(arg.length!=2){
+            System.err.println("usage: java ScpTo file1 user@remotehost:file2");
+            System.exit(-1);
+        }
+
+        FileInputStream fis=null;
         try{
+
+            String lfile=arg[0];
+            String user=arg[1].substring(0, arg[1].indexOf('@'));
+            arg[1]=arg[1].substring(arg[1].indexOf('@')+1);
+            String host=arg[1].substring(0, arg[1].indexOf(':'));
+            String rfile=arg[1].substring(arg[1].indexOf(':')+1);
+
             JSch jsch=new JSch();
-
-//            String host=null;
-//            if(arg.length>0){
-//                host=arg[0];
-//            }
-//            else{
-//                host=JOptionPane.showInputDialog("Enter username@hostname",
-//                        System.getProperty("user.name")+
-//                                "@localhost");
-//            }
-//            String user=host.substring(0, host.indexOf('@'));
-//            host=host.substring(host.indexOf('@')+1);
-//
-//            Session session=jsch.getSession(user, host, 22);
-            Session session=jsch.getSession("testbird-ios", "10.10.10.75", 22);
-
-      /*
-      String xhost="127.0.0.1";
-      int xport=0;
-      String display=JOptionPane.showInputDialog("Enter display name",
-                                                 xhost+":"+xport);
-      xhost=display.substring(0, display.indexOf(':'));
-      xport=Integer.parseInt(display.substring(display.indexOf(':')+1));
-      session.setX11Host(xhost);
-      session.setX11Port(xport+6000);
-      */
+            Session session=jsch.getSession(user, host, 22);
 
             // username and password will be given via UserInfo interface.
-//            UserInfo ui=new MyUserInfo();
-//            session.setUserInfo(ui);
-            session.setUserInfo(mLeoUserInfo);
+            UserInfo ui=new MyUserInfo();
+            session.setUserInfo(ui);
             session.connect();
 
-            String command=JOptionPane.showInputDialog("Enter command",
-                    "set|grep SSH");
+            boolean ptimestamp = true;
 
+            // exec 'scp -t rfile' remotely
+            String command="scp " + (ptimestamp ? "-p" :"") +" -t "+rfile;
             Channel channel=session.openChannel("exec");
             ((ChannelExec)channel).setCommand(command);
 
-            // X Forwarding
-            // channel.setXForwarding(true);
-
-            //channel.setInputStream(System.in);
-            channel.setInputStream(null);
-
-            //channel.setOutputStream(System.out);
-
-            //FileOutputStream fos=new FileOutputStream("/tmp/stderr");
-            //((ChannelExec)channel).setErrStream(fos);
-            ((ChannelExec)channel).setErrStream(System.err);
-
+            // get I/O streams for remote scp
+            OutputStream out=channel.getOutputStream();
             InputStream in=channel.getInputStream();
 
             channel.connect();
 
-            byte[] tmp=new byte[1024];
-            while(true){
-                while(in.available()>0){
-                    int i=in.read(tmp, 0, 1024);
-                    if(i<0)break;
-                    System.out.print(new String(tmp, 0, i));
-                }
-                if(channel.isClosed()){
-                    if(in.available()>0) continue;
-                    System.out.println("exit-status: "+channel.getExitStatus());
-                    break;
-                }
-                try{Thread.sleep(1000);}catch(Exception ee){}
-            }
-            channel.disconnect();
-            // should not close session
-//            session.disconnect();
-            System.out.println("--========================-----------");
-            command=JOptionPane.showInputDialog("Enter command",
-                    "set|grep SSH");
-
-            channel=session.openChannel("exec");
-            ((ChannelExec)channel).setCommand(command);
-            in=channel.getInputStream();
-            channel.connect();
-            tmp=new byte[1024];
-            while(true){
-                while(in.available()>0){
-                    int i=in.read(tmp, 0, 1024);
-                    if(i<0)break;
-                    System.out.print(new String(tmp, 0, i));
-                }
-                if(channel.isClosed()){
-                    if(in.available()>0) continue;
-                    System.out.println("exit-status: "+channel.getExitStatus());
-                    break;
-                }
-                try{Thread.sleep(1000);}catch(Exception ee){}
+            if(checkAck(in)!=0){
+                System.exit(0);
             }
 
-            System.out.println("--========================-----------");
+            File _lfile = new File(lfile);
+
+            if(ptimestamp){
+                command="T "+(_lfile.lastModified()/1000)+" 0";
+                // The access time should be sent here,
+                // but it is not accessible with JavaAPI ;-<
+                command+=(" "+(_lfile.lastModified()/1000)+" 0\n");
+                out.write(command.getBytes()); out.flush();
+                if(checkAck(in)!=0){
+                    System.exit(0);
+                }
+            }
+
+            // send "C0644 filesize filename", where filename should not include '/'
+            long filesize=_lfile.length();
+            command="C0644 "+filesize+" ";
+            if(lfile.lastIndexOf('/')>0){
+                command+=lfile.substring(lfile.lastIndexOf('/')+1);
+            }
+            else{
+                command+=lfile;
+            }
+            command+="\n";
+            out.write(command.getBytes()); out.flush();
+            if(checkAck(in)!=0){
+                System.exit(0);
+            }
+
+            // send a content of lfile
+            fis=new FileInputStream(lfile);
+            byte[] buf=new byte[1024];
+            while(true){
+                int len=fis.read(buf, 0, buf.length);
+                if(len<=0) break;
+                out.write(buf, 0, len); //out.flush();
+            }
+            fis.close();
+            fis=null;
+            // send '\0'
+            buf[0]=0; out.write(buf, 0, 1); out.flush();
+            if(checkAck(in)!=0){
+                System.exit(0);
+            }
+            out.close();
+
             channel.disconnect();
             session.disconnect();
+
+            System.exit(0);
         }
         catch(Exception e){
             System.out.println(e);
+            try{if(fis!=null)fis.close();}catch(Exception ee){}
         }
     }
 
-    private static UserInfo mLeoUserInfo = new UserInfo() {
-        @Override
-        public String getPassphrase() {
-            return null;
-        }
+    static int checkAck(InputStream in) throws IOException{
+        int b=in.read();
+        // b may be 0 for success,
+        //          1 for error,
+        //          2 for fatal error,
+        //          -1
+        if(b==0) return b;
+        if(b==-1) return b;
 
-        @Override
-        public String getPassword() {
-            return "123";
+        if(b==1 || b==2){
+            StringBuffer sb=new StringBuffer();
+            int c;
+            do {
+                c=in.read();
+                sb.append((char)c);
+            }
+            while(c!='\n');
+            if(b==1){ // error
+                System.out.print(sb.toString());
+            }
+            if(b==2){ // fatal error
+                System.out.print(sb.toString());
+            }
         }
-
-        @Override
-        public boolean promptPassword(String message) {
-            return true;
-        }
-
-        @Override
-        public boolean promptPassphrase(String message) {
-            return true;
-        }
-
-        @Override
-        public boolean promptYesNo(String message) {
-            return true;
-        }
-
-        @Override
-        public void showMessage(String message) {
-
-        }
-    };
+        return b;
+    }
 
     public static class MyUserInfo implements UserInfo, UIKeyboardInteractive{
         public String getPassword(){ return passwd; }
@@ -171,9 +164,7 @@ public class Exec{
                 passwd=passwordField.getText();
                 return true;
             }
-            else{
-                return false;
-            }
+            else{ return false; }
         }
         public void showMessage(String message){
             JOptionPane.showMessageDialog(null, message);
