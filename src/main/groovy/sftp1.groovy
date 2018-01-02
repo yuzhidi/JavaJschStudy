@@ -10,6 +10,7 @@ session.with {
     setConfig config
     setPassword "123"
     connect()
+
     Channel chan = openChannel "sftp"
     chan.connect()
 
@@ -18,10 +19,13 @@ session.with {
     def getFile = new File('/tmp/gotleoneed')
     sftp.get("/Users/testbird-ios/work/roc-xcode9/roc.version", "/tmp/leoneed")
     sftp.put("/tmp/leoneed", "/tmp/remoteleoneed0")
+    /**
+     * must absolute path
+     */
     putFile.withInputStream { inputStream -> sftp.put(inputStream, "/tmp/remoteleoneed1")}
-    getFile.withOutputStream { outputStream -> sftp.get("/tmp/remoteleoneed0", outputStream) }
+    getFile.withOutputStream { outputStream -> sftp.get("/Users/testbird-ios/work/roc-xcode9/roc.log.20171228180054.aaab", outputStream) }
 
     chan.disconnect()
+
     disconnect()
 }
-session.disconnect()
