@@ -47,11 +47,15 @@ public class Arg4jSampleMain {
     }
 
     public void doMain(String[] args) throws IOException {
+        for (String s : args) {
+            System.out.println(s);
+        }
         CmdLineParser parser = new CmdLineParser(this);
+
 
         // if you have a wider console, you could increase the value;
         // here 80 is also the default
-        parser.setUsageWidth(80);
+        parser.getProperties().withUsageWidth(80);
 
         try {
             // parse the arguments.
@@ -62,8 +66,9 @@ public class Arg4jSampleMain {
 
             // after parsing arguments, you should check
             // if enough arguments are given.
+
             if( arguments.isEmpty() )
-                throw new CmdLineException(parser,"No argument is given");
+                System.err.println("arguments is empty");
 
         } catch( CmdLineException e ) {
             // if there's a problem in the command line,
@@ -94,7 +99,9 @@ public class Arg4jSampleMain {
 
         if( num>=0 )
             System.out.println("-n was "+num);
-
+        if (hiddenStr2 != null) {
+            System.out.println("hiddenStr2:" + hiddenStr2);
+        }
         // access non-option arguments
         System.out.println("other arguments are:");
         for( String s : arguments )
