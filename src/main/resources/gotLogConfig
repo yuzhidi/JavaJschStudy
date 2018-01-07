@@ -1,0 +1,7 @@
+username=
+password=123
+host=10.10.10.75
+targetFilePath=/tmp/logFile
+logDir=
+fileNamePrefix=
+command="cd $logDir; for i in `ls -t ${fileNamePrefix}*`;do echo \$i;grep -q $keyWord \$i; if [[ \$? == 0 ]]; then echo found:\$i;break; fi;done"
