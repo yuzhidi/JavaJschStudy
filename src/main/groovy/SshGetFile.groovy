@@ -18,12 +18,33 @@ class SshGetFile {
 
     boolean getFile() {
         def username = hostProperties.getProperty("username")
+        if (!username) {
+            throw new Exception("no username")
+        }
         def password = hostProperties.getProperty("password")
+        if (!password) {
+            throw new Exception("no password")
+        }
         def host = hostProperties.getProperty("host")
+        if (!host) {
+            throw new Exception("no host")
+        }
         def port = hostProperties.getProperty("port")
         def targetFilePath = hostProperties.getProperty("targetFilePath")
-        def targetFile = new File(targetFilePath)
-        def chosenFileCommand = hostProperties.getProperty("command")
+        if (!targetFilePath) {
+            throw new Exception("no targetFilePath")
+        }
+        def targetFile = new File("${targetFilePath}-${keyWord}")
+        def logDir = hostProperties.getProperty("logDir")
+        if (!logDir) {
+            throw new Exception("no logDir")
+        }
+        def filePatten = hostProperties.getProperty("fileNamePattern")
+        if (!filePatten) {
+            throw new Exception("no fileNamePattern")
+        }
+        def chosenFileCommand = "cd $logDir; for i in `ls -t ${filePatten}`;do echo \$i;grep -q $keyWord \$i; if [[ \$? == 0 ]]; then echo found:\$i;break; fi;done"
+        println "$chosenFileCommand"
 
         println "$username, $password, $host, $port"
 
@@ -36,7 +57,6 @@ class SshGetFile {
             setPassword password
             connect()
 
-            println chosenFileCommand
             println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
             Channel channel= openChannel"exec"
             ((ChannelExec)channel).setCommand(chosenFileCommand)
@@ -58,7 +78,7 @@ class SshGetFile {
             }
             channel.disconnect()
 
-            println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+            println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + targetFile.getAbsolutePath()
             Channel chan = openChannel "sftp"
             chan.connect()
 

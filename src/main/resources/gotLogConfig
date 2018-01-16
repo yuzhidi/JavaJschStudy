@@ -1,6 +1,7 @@
-username=
+username=testbird-ios
 password=123
 host=10.10.10.75
 targetFilePath=/tmp/logFile
-logDir=
-command="cd $logDir; for i in `ls -t roc.log*`;do echo \$i;grep -q $keyWord \$i; if [[ \$? == 0 ]]; then echo found:\$i;break; fi;done"
+logDir=/Users/testbird-ios/work/roc-xcode9
+fileNamePattern=roc.log*
+
