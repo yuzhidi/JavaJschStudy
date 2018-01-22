@@ -16,7 +16,7 @@ class SshGetFile {
         keyWord = keyword
     }
 
-    boolean getFile() {
+    File getFile() {
         def username = hostProperties.getProperty("username")
         if (!username) {
             throw new Exception("no username")
@@ -30,20 +30,28 @@ class SshGetFile {
             throw new Exception("no host")
         }
         def port = hostProperties.getProperty("port")
-        def targetFilePath = hostProperties.getProperty("targetFilePath")
-        if (!targetFilePath) {
-            throw new Exception("no targetFilePath")
+
+        def toLogDir = hostProperties.getProperty("toLogDir")
+        if (!toLogDir) {
+            throw new Exception("no toLogDir")
         }
-        def targetFile = new File("${targetFilePath}-${keyWord}")
-        def logDir = hostProperties.getProperty("logDir")
-        if (!logDir) {
-            throw new Exception("no logDir")
+        new File(toLogDir).mkdirs()
+
+        def namePrefix = hostProperties.getProperty("namePrefix")
+        if (!namePrefix) {
+            throw new Exception("no namePrefix")
         }
-        def filePatten = hostProperties.getProperty("fileNamePattern")
+        def toLogFile = new File("${toLogDir}${File.separator}${namePrefix}-${keyWord}")
+
+        def fromLogDir = hostProperties.getProperty("fromLogDir")
+        if (!fromLogDir) {
+            throw new Exception("no fromLogDir")
+        }
+        def filePatten = hostProperties.getProperty("filePattern")
         if (!filePatten) {
-            throw new Exception("no fileNamePattern")
+            throw new Exception("no filePattern")
         }
-        def chosenFileCommand = "cd $logDir; for i in `ls -t ${filePatten}`;do echo \$i;grep -q $keyWord \$i; if [[ \$? == 0 ]]; then echo found:\$i;break; fi;done"
+        def chosenFileCommand = "cd $fromLogDir; for i in `ls -t ${filePatten}`;do echo \$i;grep -q $keyWord \$i; if [[ \$? == 0 ]]; then echo found:\$i;break; fi;done"
         println "$chosenFileCommand"
 
         println "$username, $password, $host, $port"
@@ -57,7 +65,7 @@ class SshGetFile {
             setPassword password
             connect()
 
-            println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+            println "remote start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
             Channel channel= openChannel"exec"
             ((ChannelExec)channel).setCommand(chosenFileCommand)
 
@@ -72,22 +80,22 @@ class SshGetFile {
             inputStream.text.eachLine {
                 println it
                 if (it.toString().contains("found")) {
-                    remoteFile = hostProperties.getProperty("logDir") +File.separator + it.toString().split(":")[1]
+                    remoteFile = fromLogDir + File.separator + it.toString().split(":")[1]
                     println "remoteFile:$remoteFile"
                 }
             }
             channel.disconnect()
 
-            println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + targetFile.getAbsolutePath()
+            println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " +  toLogFile.getAbsolutePath()
             Channel chan = openChannel "sftp"
             chan.connect()
 
             ChannelSftp sftp = (ChannelSftp) chan
-             targetFile.withOutputStream { outputStream -> sftp.get(remoteFile, outputStream) }
+            toLogFile.withOutputStream { outputStream -> sftp.get(remoteFile, outputStream) }
 
             chan.disconnect()
             disconnect()
         }
-        targetFile.size() > 0 ? true : false
+         toLogFile
     }
 }

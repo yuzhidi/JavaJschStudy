@@ -12,6 +12,9 @@ class Args {
     @Option(name="-host",usage="host config")
     String host
 
+    @Option(name="-u",usage="udid")
+    String udid
+
     boolean parse(String[] args) {
         CmdLineParser parser = new CmdLineParser(this)
         if (args.size() == 0) {

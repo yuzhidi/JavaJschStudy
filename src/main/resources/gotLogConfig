@@ -1,7 +1,8 @@
-username=testbird-ios
-password=123
-host=10.10.10.75
-targetFilePath=/tmp/logFile
-logDir=/Users/testbird-ios/work/roc-xcode9
-fileNamePattern=roc.log*
+username=
+password=
+host=
+fromLogDir=
+filePattern=
+toLogDir=
+namePrefix=
 
