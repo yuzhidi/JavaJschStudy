@@ -5,4 +5,5 @@ fromLogDir=
 filePattern=
 toLogDir=
 namePrefix=
+enableParse=
 

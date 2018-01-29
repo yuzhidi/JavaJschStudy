@@ -41,10 +41,14 @@ if (isTestParse) {
         System.exit(1)
     }
 }
+
+if (!hostProperties.getProperty("enableParse") || !(args.keyWord)) {
+    System.exit(0)
+}
 /**
  * parse device log
  */
-println("###### do parse ######")
+println("###### prepare parse ######")
 // part of log
 def process = "grep -n ${args.keyWord} ${targetFile.absolutePath}".execute() | "head -n 1".execute() | "cut -d : -f1".execute()
 def lineNumberFirst = process.text.trim()
@@ -65,11 +69,15 @@ if (lineNumberFirst && lineNumberLast && lineNumberFirst != lineNumberLast) {
     def text = process.text
     process.closeStreams()
     keyWordCoveredLogFile.write(text)
+} else {
+    println("exit as head tail number error")
+    System.exit(1)
 }
 
+def udidLogFile
 if (keyWordCoveredLogFile.length() && args.udid && args.keyWord != args.udid) {
 //    println args.udid
-    def udidLogFile = new File("${keyWordCoveredLogFile.absolutePath}-${args.udid}")
+    udidLogFile = new File("${keyWordCoveredLogFile.absolutePath}-${args.udid}")
     def devLogTag="DEV.${args.udid.substring(0,8)}"
     println devLogTag
     println udidLogFile.absolutePath
@@ -83,4 +91,5 @@ if (keyWordCoveredLogFile.length() && args.udid && args.keyWord != args.udid) {
     println "wc ${udidLogFile.absolutePath}".execute().text
 }
 
+new LogParser(udidLogFile ? udidLogFile : targetFile).doParser()
 
