@@ -41,7 +41,6 @@ class SshGetFile {
         if (!namePrefix) {
             throw new Exception("no namePrefix")
         }
-        def toLogFile = new File("${toLogDir}${File.separator}${namePrefix}-${keyWord}")
 
         def fromLogDir = hostProperties.getProperty("fromLogDir")
         if (!fromLogDir) {
@@ -51,11 +50,17 @@ class SshGetFile {
         if (!filePatten) {
             throw new Exception("no filePattern")
         }
-        def chosenFileCommand = "cd $fromLogDir; for i in `ls -t ${filePatten}`;do echo \$i;grep -q $keyWord \$i; if [[ \$? == 0 ]]; then echo found:\$i;break; fi;done"
+        def chosenFileCommand
+        if (keyWord) {
+            chosenFileCommand = "cd $fromLogDir; for i in `ls -t ${filePatten}`;do echo \$i;grep -q $keyWord \$i; if [[ \$? == 0 ]]; then echo found:\$i;break; fi;done"
+        } else {
+            chosenFileCommand = "cd $fromLogDir; echo found:`ls -t ${filePatten} | head -n 1`"
+        }
         println "$chosenFileCommand"
 
         println "$username, $password, $host, $port"
 
+        def toLogFile
         def sessionConfig = new Properties()
         sessionConfig.put "StrictHostKeyChecking", "no"
         JSch ssh = new JSch()
@@ -80,13 +85,18 @@ class SshGetFile {
             inputStream.text.eachLine {
                 println it
                 if (it.toString().contains("found")) {
-                    remoteFile = fromLogDir + File.separator + it.toString().split(":")[1]
+                    def remoteFileName = it.toString().split(":")[1]
+                    remoteFile = fromLogDir + File.separator + remoteFileName
+                    def toLogFilePath = toLogDir + File.separator + namePrefix + remoteFileName
+                    toLogFilePath = keyWord ? "${toLogFilePath}-${keyWord}" : toLogFilePath
+                    toLogFile = new File(toLogFilePath)
+
                     println "remoteFile:$remoteFile"
                 }
             }
             channel.disconnect()
 
-            println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " +  toLogFile.getAbsolutePath()
+            println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + toLogFile.getAbsolutePath()
             Channel chan = openChannel "sftp"
             chan.connect()
 

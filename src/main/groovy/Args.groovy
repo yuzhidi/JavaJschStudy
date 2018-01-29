@@ -17,11 +17,11 @@ class Args {
 
     boolean parse(String[] args) {
         CmdLineParser parser = new CmdLineParser(this)
-        if (args.size() == 0) {
-            System.err.println("please input arguments:")
-            usage parser, null
-            return false
-        }
+//        if (args.size() == 0) {
+//            System.err.println("please input arguments:")
+//            usage parser, null
+//            return false
+//        }
         try {
             // parse the arguments.
             parser.parseArgument(args)
