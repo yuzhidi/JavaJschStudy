@@ -16,40 +16,43 @@ def args = new Args()
 if (!args.parse(this.args)) {
     System.exit(1)
 }
-
-def config_file_path
-if (args.host == null) {
-    config_file_path = Thread.currentThread().getContextClassLoader().getResource("gotLogConfig").getPath()
-} else {
-    config_file_path = args.host
-}
+def targetFile = new File(args.sourceFile)
+if (!args.sourceFile) {
+    def config_file_path
+    if (args.host == null) {
+        config_file_path = Thread.currentThread().getContextClassLoader().getResource("gotLogConfig").getPath()
+        println config_file_path
+    } else {
+        config_file_path = args.host
+    }
 
 /**
  * got device log
  */
-def hostProperties = new Properties()
-hostProperties.load(new FileReader(new File(config_file_path)))
+    def hostProperties = new Properties()
+    hostProperties.load(new FileReader(new File(config_file_path)))
 
 
-def targetFile
-if (isTestParse) {
-    targetFile = new File ("/Users/wangliang/bugLog/logFile-04044cb7d69048c8ba50ce9345324673")
-} else {
-    targetFile = new SshGetFile(hostProperties, args.keyWord).getFile()
-    if (!targetFile.exists() || targetFile.size() == 0) {
-        println("not got log file")
-        System.exit(1)
+    if (isTestParse) {
+        targetFile = new File ("/Users/wangliang/bugLog/logFile-04044cb7d69048c8ba50ce9345324673")
+    } else {
+        targetFile = new SshGetFile(hostProperties, args.keyWord).getFile()
+        if (!targetFile.exists() || targetFile.size() == 0) {
+            println("not got log file")
+            System.exit(1)
+        }
     }
-}
 
-if (!hostProperties.getProperty("enableParse") || !(args.keyWord)) {
-    System.exit(0)
+    if (!hostProperties.getProperty("enableParse") || !(args.keyWord)) {
+        System.exit(0)
+    }
 }
 /**
  * parse device log
  */
 println("###### prepare parse ######")
 // part of log
+// println "grep -n ${args.keyWord} ${targetFile.absolutePath} | head -n 1 | cut -d : -f1"
 def process = "grep -n ${args.keyWord} ${targetFile.absolutePath}".execute() | "head -n 1".execute() | "cut -d : -f1".execute()
 def lineNumberFirst = process.text.trim()
 process.closeStreams()

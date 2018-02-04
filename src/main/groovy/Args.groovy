@@ -15,6 +15,9 @@ class Args {
     @Option(name="-u",usage="udid")
     String udid
 
+    @Option(name="-s",usage="parse source file")
+    String sourceFile
+
     boolean parse(String[] args) {
         CmdLineParser parser = new CmdLineParser(this)
 //        if (args.size() == 0) {

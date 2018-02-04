@@ -38,9 +38,6 @@ class SshGetFile {
         new File(toLogDir).mkdirs()
 
         def namePrefix = hostProperties.getProperty("namePrefix")
-        if (!namePrefix) {
-            throw new Exception("no namePrefix")
-        }
 
         def fromLogDir = hostProperties.getProperty("fromLogDir")
         if (!fromLogDir) {
