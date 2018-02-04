@@ -57,7 +57,7 @@ def process = "grep -n ${args.keyWord} ${targetFile.absolutePath}".execute() | "
 def lineNumberFirst = process.text.trim()
 process.closeStreams()
 
-def keyWordCoveredSuffix = "keyWordCovered"
+def keyWordCoveredSuffix = "key-${args.keyWord}"
 
 println "lineNumberFirst:$lineNumberFirst"
 
@@ -80,7 +80,7 @@ if (lineNumberFirst && lineNumberLast && lineNumberFirst != lineNumberLast) {
 def udidLogFile
 if (keyWordCoveredLogFile.length() && args.udid && args.keyWord != args.udid) {
 //    println args.udid
-    udidLogFile = new File("${keyWordCoveredLogFile.absolutePath}-${args.udid}")
+    udidLogFile = new File("${keyWordCoveredLogFile.absolutePath}-udid-${args.udid}")
     def devLogTag="DEV.${args.udid.substring(0,8)}"
     println devLogTag
     println udidLogFile.absolutePath
