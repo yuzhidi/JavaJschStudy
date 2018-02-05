@@ -16,7 +16,7 @@ def args = new Args()
 if (!args.parse(this.args)) {
     System.exit(1)
 }
-def targetFile = new File(args.sourceFile)
+def targetFile
 if (!args.sourceFile) {
     def config_file_path
     if (args.host == null) {
@@ -46,6 +46,8 @@ if (!args.sourceFile) {
     if (!hostProperties.getProperty("enableParse") || !(args.keyWord)) {
         System.exit(0)
     }
+} else {
+    targetFile = new File(args.sourceFile)
 }
 /**
  * parse device log
