@@ -44,6 +44,7 @@ if (!args.sourceFile) {
     }
 
     if (!hostProperties.getProperty("enableParse") || !(args.keyWord)) {
+        println "not do parse. exit!"
         System.exit(0)
     }
 } else {
@@ -59,7 +60,6 @@ def process = "grep -n ${args.keyWord} ${targetFile.absolutePath}".execute() | "
 def lineNumberFirst = process.text.trim()
 process.closeStreams()
 
-def keyWordCoveredSuffix = "key-${args.keyWord}"
 
 println "lineNumberFirst:$lineNumberFirst"
 
@@ -68,7 +68,7 @@ def lineNumberLast = process.text.trim()
 process.closeStreams()
 println "lineNumberLast:$lineNumberLast"
 
-def keyWordCoveredLogFile = new File("${targetFile.absolutePath}-${keyWordCoveredSuffix}")
+def keyWordCoveredLogFile = new File("${targetFile.absolutePath}")
 if (lineNumberFirst && lineNumberLast && lineNumberFirst != lineNumberLast) {
     process = ['sed', '-n', "${lineNumberFirst}, ${lineNumberLast}p", "${targetFile.absolutePath}"].execute()
     def text = process.text
@@ -81,6 +81,7 @@ if (lineNumberFirst && lineNumberLast && lineNumberFirst != lineNumberLast) {
 
 def udidLogFile
 if (keyWordCoveredLogFile.length() && args.udid && args.keyWord != args.udid) {
+    println "handle udid:${args.udid}"
 //    println args.udid
     udidLogFile = new File("${keyWordCoveredLogFile.absolutePath}-udid-${args.udid}")
     def devLogTag="DEV.${args.udid.substring(0,8)}"

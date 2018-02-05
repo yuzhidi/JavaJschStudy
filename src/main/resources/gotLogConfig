@@ -1,9 +1,9 @@
-username=
-password=
-host=
-fromLogDir=
-filePattern=
-toLogDir=
+username=testbird-ios
+password=123
+host=10.10.10.75
+fromLogDir=/Users/testbird-ios/work/roc-xcode9
+filePattern=roc.log*
+toLogDir=/Users/wangliang/bugLog
 namePrefix=
-enableParse=
+enableParse=True
 
