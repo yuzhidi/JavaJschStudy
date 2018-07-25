@@ -4,6 +4,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.BooleanOptionHandler;
+import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +39,12 @@ public class Arg4jSampleMain {
     @Option(name="-custom",handler=BooleanOptionHandler.class,usage="boolean value for checking the custom handler")
     private boolean data;
 
+    @Option(name="-multivalued-array", handler = StringArrayOptionHandler.class)
+    String[] multiValuedArray;
+
+    @Option(name="-multivalued-array2", handler = StringArrayOptionHandler.class)
+    String[] multiValuedArray2;
+
     // receives other command line parameters than options
     @Argument
     private List<String> arguments = new ArrayList<String>();
@@ -47,9 +54,12 @@ public class Arg4jSampleMain {
     }
 
     public void doMain(String[] args) throws IOException {
+        System.out.println("args >>>>>>>>>>>>>>>>>>");
         for (String s : args) {
             System.out.println(s);
         }
+        System.out.println("args <<<<<<<<<<<<<<<<<<<<<<<<");
+
         CmdLineParser parser = new CmdLineParser(this);
 
 
@@ -90,7 +100,7 @@ public class Arg4jSampleMain {
         System.out.println(out);
 
         if( recursive )
-            System.out.println("-r flag is set");
+            System.out.println("-r flag is set: " + recursive );
 
         if( data )
             System.out.println("-custom flag is set");
@@ -102,6 +112,15 @@ public class Arg4jSampleMain {
         if (hiddenStr2 != null) {
             System.out.println("hiddenStr2:" + hiddenStr2);
         }
+
+        for (String string : multiValuedArray) {
+            System.out.println("multiValue : " + string);
+        }
+
+        for (String string : multiValuedArray2) {
+            System.out.println("multiValue2: " + string);
+        }
+        // acc
         // access non-option arguments
         System.out.println("other arguments are:");
         for( String s : arguments )

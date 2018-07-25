@@ -12,10 +12,14 @@ class LogParser {
         println("###### do parse ######")
         logFile.text.eachLine {
             if (it.contains("init device success")) {
-                println it
+//                println it
             } else if (it.contains("LANG:")) {
-                println(it)
+//                println(it)
             }
+        }
+        println("###### wda error ######")
+        for (errorString in WdaError.ErrorStrings) {
+
         }
     }
 }

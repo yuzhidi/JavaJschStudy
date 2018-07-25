@@ -1,6 +1,7 @@
 import org.kohsuke.args4j.CmdLineException
 import org.kohsuke.args4j.CmdLineParser
 import org.kohsuke.args4j.Option
+import org.kohsuke.args4j.spi.StringArrayOptionHandler
 
 /**
  * Created by Leocone on 2/1/18.
@@ -17,6 +18,9 @@ class Args {
 
     @Option(name="-s",usage="parse source file")
     String sourceFile
+
+    @Option(name="-ignores", handler = StringArrayOptionHandler.class)
+    String[] multiValuedArray;
 
     boolean parse(String[] args) {
         CmdLineParser parser = new CmdLineParser(this)

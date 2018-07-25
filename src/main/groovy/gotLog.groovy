@@ -16,6 +16,8 @@ def args = new Args()
 if (!args.parse(this.args)) {
     System.exit(1)
 }
+
+println('')
 def targetFile
 if (!args.sourceFile) {
     def config_file_path
@@ -55,7 +57,7 @@ if (!args.sourceFile) {
  */
 println("###### prepare parse ######")
 // part of log
-// println "grep -n ${args.keyWord} ${targetFile.absolutePath} | head -n 1 | cut -d : -f1"
+ println "grep -n ${args.keyWord} ${targetFile.absolutePath} | head -n 1 | cut -d : -f1"
 def process = "grep -n ${args.keyWord} ${targetFile.absolutePath}".execute() | "head -n 1".execute() | "cut -d : -f1".execute()
 def lineNumberFirst = process.text.trim()
 process.closeStreams()
@@ -68,7 +70,7 @@ def lineNumberLast = process.text.trim()
 process.closeStreams()
 println "lineNumberLast:$lineNumberLast"
 
-def keyWordCoveredLogFile = new File("${targetFile.absolutePath}")
+def keyWordCoveredLogFile = new File("${targetFile.absolutePath}-keyword-${args.keyWord}")
 if (lineNumberFirst && lineNumberLast && lineNumberFirst != lineNumberLast) {
     process = ['sed', '-n', "${lineNumberFirst}, ${lineNumberLast}p", "${targetFile.absolutePath}"].execute()
     def text = process.text
