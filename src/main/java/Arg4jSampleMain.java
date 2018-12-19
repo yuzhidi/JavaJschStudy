@@ -1,10 +1,10 @@
 import static org.kohsuke.args4j.ExampleMode.ALL;
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.Option;
+
+import groovy.ui.SystemOutputInterceptor;
+import org.kohsuke.args4j.*;
 import org.kohsuke.args4j.spi.BooleanOptionHandler;
 import org.kohsuke.args4j.spi.StringArrayOptionHandler;
+import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 
 import java.io.File;
 import java.io.IOException;
@@ -125,5 +125,14 @@ public class Arg4jSampleMain {
         System.out.println("other arguments are:");
         for( String s : arguments )
             System.out.println(s);
+
+
+        System.out.println("printExample -------->");
+        System.out.println(parser.printExample(OptionHandlerFilter.ALL));
+        System.out.println("printExample --------<");
+
+        System.out.println("print parser.toString -------->");
+        System.out.println(parser.toString());
+        System.out.println("print parser.toString --------<");
     }
 }

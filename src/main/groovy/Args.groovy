@@ -19,8 +19,8 @@ class Args {
     @Option(name="-s",usage="parse source file")
     String sourceFile
 
-    @Option(name="-ignores", handler = StringArrayOptionHandler.class)
-    String[] multiValuedArray;
+    @Option(name="-ignore", handler = StringArrayOptionHandler.class)
+    String[] ignoreList
 
     boolean parse(String[] args) {
         CmdLineParser parser = new CmdLineParser(this)

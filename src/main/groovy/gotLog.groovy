@@ -70,16 +70,40 @@ def lineNumberLast = process.text.trim()
 process.closeStreams()
 println "lineNumberLast:$lineNumberLast"
 
+
 def keyWordCoveredLogFile = new File("${targetFile.absolutePath}-keyword-${args.keyWord}")
 if (lineNumberFirst && lineNumberLast && lineNumberFirst != lineNumberLast) {
     process = ['sed', '-n', "${lineNumberFirst}, ${lineNumberLast}p", "${targetFile.absolutePath}"].execute()
     def text = process.text
     process.closeStreams()
     keyWordCoveredLogFile.write(text)
+    println "wc ${keyWordCoveredLogFile.absolutePath}".execute().text
 } else {
     println("exit as head tail number error")
     System.exit(1)
 }
+
+
+if (args.ignoreList != null && args.ignoreList.size() > 0) {
+    StringBuilder ignoreString = new StringBuilder("\"").append(args.ignoreList[0])
+    if (args.ignoreList.size() > 1) {
+        for (int i = 1 ;i < args.ignoreList; i++) {
+            ignoreString.append("|").append(args[i])
+        }
+    }
+    ignoreString.append("\"")
+    def ignoreArgument = ignoreString.toString()
+
+    def ignoreCmd = "grep -vE $ignoreArgument ${keyWordCoveredLogFile.absolutePath}"
+    println ignoreCmd
+    process = ignoreCmd.execute()
+    def keyWordIgnoreLogFile = new File("${keyWordCoveredLogFile.absolutePath}-ignore")
+    def text = process.text
+    process.closeStreams()
+    keyWordIgnoreLogFile.write(text)
+    println "wc ${keyWordIgnoreLogFile.absolutePath}".execute().text
+}
+
 
 def udidLogFile
 if (keyWordCoveredLogFile.length() && args.udid && args.keyWord != args.udid) {
